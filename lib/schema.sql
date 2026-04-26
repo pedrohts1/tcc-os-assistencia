@@ -42,8 +42,8 @@ CREATE TABLE Ordens_Servico(
     defeito_relatado TEXT,
     laudo_tecnico TEXT,   
     acessorios TEXT,
-    data_entrada TIMESTAMP DEFAULT,
+    data_entrada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     valor_total DECIMAL(10,2),
-    CONSTRAINT fk_equipamento_id FOREIGN KEY (id) REFERENCES Equipamentos(id),
-    CONSTRAINT fk_tecnicos_id FOREIGN key (id) REFERENCES Tecnicos(id)
+    CONSTRAINT fk_equipamento_id FOREIGN KEY (equipamento_id) REFERENCES Equipamentos(id),
+    CONSTRAINT fk_tecnicos_id FOREIGN key (tecnico_id) REFERENCES Tecnicos(id)
 );
