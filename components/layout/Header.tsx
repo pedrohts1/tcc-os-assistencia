@@ -3,7 +3,7 @@ import React from 'react'
 export default function Header() {
   return (
     <div className='header'>
-        Header
+        <h1>TecAssist</h1>
     </div>
   )
 }

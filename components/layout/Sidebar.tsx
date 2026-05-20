@@ -2,7 +2,7 @@
 import { View } from '@/lib/types'
 
 type Props = {
-  viewAtiva: string
+  viewAtiva: View
   onChangeView: (view: View) => void
 }
 
