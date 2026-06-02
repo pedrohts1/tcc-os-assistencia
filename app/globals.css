@@ -1,92 +1,226 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
-}
-
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-
-.layout{
   width: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: row;
-}
-
-.sidebar{
-  display: flex;
-  flex-direction: column;
   height: 100%;
 }
 
-.quadro{
+#__next {
+  height: 100%;
+}
+
+.layout {
+  display: flex;
+  min-height: 100%;
+}
+
+.sidebar {
+  width: 280px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 24px 16px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.quadro {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  width: 100%;
+  background: #f5f7fb;
 }
 
 .header {
+  height: 72px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  width: 100%;
-  padding: 16px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .header h1 {
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-size: 25px;
+  color: #1f2937;
+  font-family: 'Arial', Courier, monospace;
+  font-weight: 700;
 }
 
-.conteudo{
+.conteudo {
+  flex: 1;
+  padding: 32px;
+  background: #f8fafc;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.conteudo > div {
+  width: 100%;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 40px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  height: 100%;
-  width: 100%;
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
+.sidebar button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: 0.2s;
+}
+
+.sidebar button:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.conteudo > div {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #334155;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.conteudo > div br {
+  display: none;
+}
+
+.conteudo > div input,
+.conteudo > div select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  outline: none;
+  margin-top: 4px;     /* Espaço entre o texto acima e o input */
+  margin-bottom: 16px; /* Espaço para o próximo campo */
+  box-sizing: border-box;
+  transition: all 0.2s;
+  display: block;
+}
+
+.obrigatorio {
+  color: #e20202;
+  font-weight: 500;
+}
+
+.conteudo > div input:focus,
+.conteudo > div select:focus,
+.conteudo > div textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.conteudo > div input[placeholder*="Buscar"] {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.conteudo > div button,
+.conteudo > div input[type="button"],
+.conteudo > div input[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-top: 12px;
+  border: 1px solid transparent;
+}
+
+.conteudo > div button:first-of-type,
+.conteudo > div input[value="Cancelar"] {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  margin-right: 8px;
+  float: left; /* Se precisar alinhar lado a lado */
+}
+
+.conteudo > div button:first-of-type:hover,
+.conteudo > div input[value="Cancelar"]:hover {
+  background: #f8fafc;
+}
+
+.conteudo > div button:last-of-type,
+.conteudo > div input[value*="Continuar"],
+.conteudo > div input[value*="Gravar"] {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.conteudo > div button:last-of-type:hover,
+.conteudo > div input[value*="Continuar"]:hover,
+.conteudo > div input[value*="Gravar"]:hover {
+  background: #1d4ed8;
+}
+
+.conteudo > div button, 
+.conteudo > div input[type="button"] {
+  align-self: flex-end; 
+  width: auto;
+}
+
+.conteudo > div form,
+.conteudo > div {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.conteudo > div textarea {
+  width: 100% !important;
+  min-height: 80px;      /* Altura sutil e elegante para o bloco */
+  max-height: 150px;     /* Evita que o usuário estique demais */
+  padding: 12px 14px;
+  font-size: 14px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  margin-top: 6px;       /* Espaço entre o label e o campo */
+  margin-bottom: 20px;   /* Espaço bem definido antes do próximo label */
+  font-family: inherit;
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.criar-os__busca-item {
+  
+}
+
+.criar-os__rodape {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.condicoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 15px;
+
+}
