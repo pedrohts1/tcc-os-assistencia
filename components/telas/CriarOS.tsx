@@ -388,7 +388,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
       {fase === 'formulario' && (
         <form className="criar-os__formulario" onSubmit={handleSubmit}>
           <h2 className="criar-os__secao-titulo">
-            {osEditando ? `Editar OS #${osEditando.id}` : 'Nova OS'} — {nomeCliente}
+            {osEditando ? `Editar OS #${osEditando.id}` : 'Nova Ordem de Serviço'} — {nomeCliente}
           </h2>
 
           <div className="criar-os__linha">
@@ -524,25 +524,26 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
               </div>
             </div>
           </div>
+          <div className="condicoes">
+              <div className="campo">
+              <label className="label">Acessórios / Itens Inclusos</label>
+              <textarea className="textarea" placeholder="Ex.: Carregador, Cabo USB..." value={acessorios} onChange={e => setAcessorios(e.target.value)} />
+            </div>
 
-          <div className="campo">
-            <label className="label">Acessórios / Itens Inclusos</label>
-            <textarea className="textarea" placeholder="Ex.: Carregador, Cabo USB..." value={acessorios} onChange={e => setAcessorios(e.target.value)} />
-          </div>
+            <div className="campo">
+              <label className="label">Aparência do Aparelho <span className="obrigatorio">*</span></label>
+              <textarea className="textarea" placeholder="Ex.: Boa, Ruim, Riscada, Trincada..." value={aparencia} onChange={e => setAparencia(e.target.value)} required />
+            </div>
 
-          <div className="campo">
-            <label className="label">Aparência do Aparelho <span className="obrigatorio">*</span></label>
-            <textarea className="textarea" placeholder="Ex.: Boa, Ruim, Riscada, Trincada..." value={aparencia} onChange={e => setAparencia(e.target.value)} required />
-          </div>
+            <div className="campo">
+              <label className="label">Defeito Relatado <span className="obrigatorio">*</span></label>
+              <textarea className="textarea" placeholder="Descreva o defeito relatado pelo cliente..." value={defeito} onChange={e => setDefeito(e.target.value)} required />
+            </div>
 
-          <div className="campo">
-            <label className="label">Defeito Relatado <span className="obrigatorio">*</span></label>
-            <textarea className="textarea" placeholder="Descreva o defeito relatado pelo cliente..." value={defeito} onChange={e => setDefeito(e.target.value)} required />
-          </div>
-
-          <div className="campo">
-            <label className="label">Observações</label>
-            <textarea className="textarea" placeholder="Informações adicionais (opcional)..." value={observacoes} onChange={e => setObservacoes(e.target.value)} />
+            <div className="campo">
+              <label className="label">Observações</label>
+              <textarea className="textarea" placeholder="Informações adicionais (opcional)..." value={observacoes} onChange={e => setObservacoes(e.target.value)} />
+            </div>
           </div>
 
           {erro && <p className="criar-os__erro">{erro}</p>}
