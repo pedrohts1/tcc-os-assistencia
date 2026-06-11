@@ -15,7 +15,7 @@ export default function Sidebar({ viewAtiva, onChangeView }: Props) {
             onClick={() => onChangeView(View.CriarOS)}
             className={viewAtiva === View.CriarOS ? 'ativo' : ''}
         >
-            Criar OS
+            Abrir OS
         </button>
         <button
             key={View.ListarOS} 

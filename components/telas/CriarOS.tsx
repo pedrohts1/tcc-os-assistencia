@@ -341,8 +341,16 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
 
       {fase === 'lista-os' && (
         <>
+          <h2 className="criar-os__secao-titulo">Ordens de Serviço</h2>
+          
           <div className="criar-os__lista-os">
-            <h2 className="criar-os__secao-titulo">Ordens de Serviço — {nomeCliente}</h2>
+            <div className='card-header'>
+              <h2 className='card-titulo'>Cliente<span className='info-icon'> ⓘ</span></h2>
+              <div className='card-dados' >
+                <label className="label-identificador">Nome</label>
+                <p className="nome-valor">{nomeCliente}</p>
+              </div>
+            </div>
 
             {carregandoOS ? (
               <p>Carregando...</p>
@@ -353,20 +361,28 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
                 <thead>
                   <tr>
                     <th>Nº OS</th>
-                    <th>Status</th>
-                    <th>Tipo</th>
+                    <th>Tipo de OS</th>
+                    <th>Situação</th>
+                    <th>Tipo de Atendimento</th>
+                    <th>Entrada</th>
                     <th>Equipamento</th>
-                    <th>Data</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Nº de Série</th>
                   </tr>
                 </thead>
                 <tbody>
                   {osExistentes.map(os => (
                     <tr key={os.id} className="criar-os__tabela-linha" onClick={() => handleEditarOS(os)}>
-                      <td>#{os.id}</td>
-                      <td>{os.stat}</td>
+                      <td>{os.id}</td>
                       <td>{os.tipo_os}</td>
-                      <td>{os.equip_tipo} {os.marca} {os.modelo}</td>
+                      <td data-status={os.stat}>{os.stat}</td>
+                      <td>{os.tipo_atendimento}</td>
                       <td>{new Date(os.data_entrada).toLocaleDateString('pt-BR')}</td>
+                      <td>{os.equip_tipo}</td>
+                      <td>{os.marca}</td>
+                      <td>{os.modelo}</td>
+                      <td>{os.numero_serie}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -395,11 +411,12 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
             <div className="campo">
               <label className="label">Status <span className="obrigatorio">*</span></label>
               <select className="select" value={statusOS} onChange={e => setStatusOS(e.target.value)} required>
-                <option value="Aguardando Avaliação">Aguardando Avaliação</option>
-                <option value="Aguardando Autorização Orçamento">Aguardando Autorização Orçamento</option>
-                <option value="Autorizado, Aguardando Peça">Autorizado, Aguardando Peça</option>
-                <option value="Autorizado, Reparo em Andamento">Autorizado, Reparo em Andamento</option>
-                <option value="Pronto, Avisar Cliente">Pronto, Avisar Cliente</option>
+                <option value="Aguardando avaliação">Aguardando avaliação</option>
+                <option value="Aguardando, autorização orçamento">Aguardando, autorização orçamento</option>
+                <option value="Autorizado, aguardando peça">Autorizado, aguardando peça</option>
+                <option value="Autorizado, reparo em andamento">Autorizado, reparo em andamento</option>
+                <option value="Pronto, cliente avisado">Pronto, cliente avisado</option>
+                <option value="Garantia, aguardando peça">Garantia, aguardando peça Peça</option>
               </select>
             </div>
             <div className="campo">
