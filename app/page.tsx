@@ -12,16 +12,28 @@ import Clientes from '@/components/telas/Clientes'
 export default function Home() {
   const [viewAtiva, setViewAtiva] = useState<View>(View.ListarOS)
   const [toastOS, setToastOS] = useState<number | null>(null)
+  const [clienteFiltro, setClienteFiltro] = useState<{ id: number, nome: string } | null>(null)
+
+  function handleChangeView(view: View) {
+    setViewAtiva(view)
+    setClienteFiltro(null)
+  }
 
   function handleOSSalva(idOrdem: number) {
     setViewAtiva(View.ListarOS)
+    setClienteFiltro(null)
     setToastOS(idOrdem)
     setTimeout(() => setToastOS(null), 4000)
   }
 
+  function handleVerOSCliente(id: number, nome: string) {
+    setClienteFiltro({ id, nome })
+    setViewAtiva(View.ListarOS)
+  }
+
   return (
     <div className="layout">
-      <Sidebar viewAtiva={viewAtiva} onChangeView={setViewAtiva} />
+      <Sidebar viewAtiva={viewAtiva} onChangeView={handleChangeView} />
       <div className="quadro">
         <Header />
         {toastOS && (
@@ -41,9 +53,14 @@ export default function Home() {
                     />
                   )
                 case View.Clientes:
-                  return <Clientes />
+                  return <Clientes onVerOS={handleVerOSCliente} />
                 default:
-                  return <ListarOS />
+                  return (
+                    <ListarOS
+                      clienteFiltro={clienteFiltro}
+                      onLimparFiltro={() => setClienteFiltro(null)}
+                    />
+                  )
               }
             })()
           }

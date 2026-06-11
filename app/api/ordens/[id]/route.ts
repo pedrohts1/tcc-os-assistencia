@@ -67,3 +67,29 @@ export async function PUT(
     return Response.json({ erro: 'Erro ao atualizar ordem de serviço.' }, { status: 500 })
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: idStr } = await params
+  const id = parseInt(idStr)
+
+  const os = db.prepare(`SELECT equipamento_id FROM Ordens_Servico WHERE id = ?`).get(id) as { equipamento_id: number } | undefined
+
+  if (!os) {
+    return Response.json({ erro: 'OS não encontrada.' }, { status: 404 })
+  }
+
+  const transacao = db.transaction(() => {
+    db.prepare(`DELETE FROM Ordens_Servico WHERE id = ?`).run(id)
+    db.prepare(`DELETE FROM Equipamentos WHERE id = ?`).run(os.equipamento_id)
+  })
+
+  try {
+    transacao()
+    return Response.json({ ok: true })
+  } catch (erro: any) {
+    return Response.json({ erro: erro.message }, { status: 500 })
+  }
+}

@@ -197,7 +197,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
     setCodigosPatrimonio(prev => prev.map((c, i) => i === index ? valor : c))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     setErro('')
 

@@ -7,12 +7,12 @@ export async function GET(request: Request) {
   const buscarClientes = db.prepare(`
     SELECT id, nome, cpf, telefone, email, endereco
     FROM Clientes
-    WHERE nome LIKE ? OR cpf LIKE ?
+    WHERE nome LIKE ? OR cpf LIKE ? OR telefone LIKE ?
     ORDER BY nome
     LIMIT 10
   `)
 
-  const clientes = buscarClientes.all(`%${busca}%`, `%${busca}%`)
+  const clientes = buscarClientes.all(`%${busca}%`, `%${busca}%`, `%${busca}%`)
   return Response.json(clientes)
 }
 

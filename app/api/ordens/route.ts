@@ -2,33 +2,55 @@ import db from '@/lib/db'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const clienteId = searchParams.get('clienteId')
+  const clienteId = searchParams.get('clienteId') ?? ''
+  const busca     = searchParams.get('busca')     ?? ''
+  const status    = searchParams.get('status')    ?? ''
 
-  const buscarOrdens = db.prepare(`
+  let query = `
     SELECT
       os.id,
       os.stat,
       os.tipo_os,
       os.tipo_atendimento,
-      os.defeito_relatado,
-      os.acessorios,
-      os.aparencia,
-      os.observacoes,
       os.data_entrada,
       e.id as equip_id,
       e.tipo as equip_tipo,
       e.marca,
       e.modelo,
       e.numero_serie,
-      e.codigos_patrimonio
+      e.codigos_patrimonio,
+      os.defeito_relatado,
+      os.acessorios,
+      os.aparencia,
+      os.observacoes,
+      c.id as cliente_id,
+      c.nome as cliente_nome,
+      c.telefone as cliente_telefone
     FROM Ordens_Servico os
     JOIN Equipamentos e ON os.equipamento_id = e.id
-    WHERE e.client_id = ?
-    ORDER BY os.data_entrada DESC
-  `)
+    JOIN Clientes c ON e.client_id = c.id
+    WHERE 1=1
+  `
+  const params: (string | number)[] = []
+
+  if (clienteId) {
+    query += ` AND c.id = ?`
+    params.push(parseInt(clienteId))
+  }
+  if (status) {
+    query += ` AND os.stat = ?`
+    params.push(status)
+  }
+  if (busca) {
+    query += ` AND (CAST(os.id AS TEXT) LIKE ? OR e.tipo LIKE ? OR e.marca LIKE ? OR e.modelo LIKE ? OR c.nome LIKE ?)`
+    const like = `%${busca}%`
+    params.push(like, like, like, like, like)
+  }
+
+  query += ` ORDER BY os.data_entrada DESC`
 
   try {
-    const ordens = buscarOrdens.all(clienteId)
+    const ordens = db.prepare(query).all(...params)
     return Response.json(ordens)
   } catch (erro: any) {
     return Response.json({ erro: erro.message }, { status: 500 })
