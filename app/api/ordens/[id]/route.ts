@@ -22,6 +22,7 @@ export async function PUT(
     aparencia,
     defeito,
     observacoes,
+    valorTotal,
   } = body
 
   const atualizarEquipamento = db.prepare(`
@@ -32,7 +33,7 @@ export async function PUT(
 
   const atualizarOrdem = db.prepare(`
     UPDATE Ordens_Servico
-    SET stat = ?, tipo_os = ?, tipo_atendimento = ?, defeito_relatado = ?, acessorios = ?, aparencia = ?, observacoes = ?
+    SET stat = ?, tipo_os = ?, tipo_atendimento = ?, defeito_relatado = ?, acessorios = ?, aparencia = ?, observacoes = ?, valor_total = ?
     WHERE id = ?
   `)
 
@@ -53,6 +54,7 @@ export async function PUT(
       acessorios,
       aparencia,
       observacoes,
+      valorTotal || null,
       id
     )
   })

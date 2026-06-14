@@ -23,6 +23,7 @@ export async function GET(request: Request) {
       os.acessorios,
       os.aparencia,
       os.observacoes,
+      os.valor_total,
       c.id as cliente_id,
       c.nome as cliente_nome,
       c.telefone as cliente_telefone
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
     aparencia,
     defeito,
     observacoes,
+    valorTotal,
   } = body
 
   const inserirEquipamento = db.prepare(`
@@ -82,8 +84,8 @@ export async function POST(request: Request) {
   `)
 
   const inserirOrdem = db.prepare(`
-    INSERT INTO Ordens_Servico (equipamento_id, stat, tipo_os, tipo_atendimento, defeito_relatado, acessorios, aparencia, observacoes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO Ordens_Servico (equipamento_id, stat, tipo_os, tipo_atendimento, defeito_relatado, acessorios, aparencia, observacoes, valor_total)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   const transacao = db.transaction(() => {
@@ -104,7 +106,8 @@ export async function POST(request: Request) {
       defeito,
       acessorios,
       aparencia,
-      observacoes
+      observacoes,
+      valorTotal || null
     )
 
     return ordemInserida.lastInsertRowid

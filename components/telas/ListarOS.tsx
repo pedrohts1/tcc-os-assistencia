@@ -22,6 +22,7 @@ interface OSLista {
   acessorios: string
   aparencia: string
   observacoes: string
+  valor_total: number | null
   cliente_id: number
   cliente_nome: string
   cliente_telefone: string
@@ -33,6 +34,7 @@ const STATUS_OPCOES = [
   'Autorizado, Aguardando Peça',
   'Autorizado, Reparo em Andamento',
   'Pronto, Avisar Cliente',
+  'Finalizado',
 ]
 
 export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
@@ -57,12 +59,14 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
   const [aparenciaEd, setAparenciaEd] = useState('')
   const [defeitoEd, setDefeitoEd] = useState('')
   const [observacoesEd, setObservacoesEd] = useState('')
-  const [erroModal, setErroModal] = useState('')
+  const [valorTotalEd, setValorTotalEd] = useState('')
+  const [erroJanela, setErroJanela] = useState('')
+  const [digitandoEquipamento, setDigitandoEquipamento] = useState(false)
+  const [digitandoMarca, setDigitandoMarca] = useState(false)
+  const [digitandoModelo, setDigitandoModelo] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      buscarOrdens()
-    }, 300)
+    const timer = setTimeout(() => { buscarOrdens() }, 300)
     return () => clearTimeout(timer)
   }, [busca, filtroStatus, clienteFiltro])
 
@@ -120,15 +124,22 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
     setAparenciaEd(os.aparencia || '')
     setDefeitoEd(os.defeito_relatado || '')
     setObservacoesEd(os.observacoes || '')
-    setErroModal('')
+    setValorTotalEd(os.valor_total != null ? String(os.valor_total) : '')
+    setErroJanela('')
+    setDigitandoEquipamento(false)
+    setDigitandoMarca(false)
+    setDigitandoModelo(false)
   }
 
-  function fecharModal() {
+  function fecharJanela() {
     setOsEditando(null)
-    setErroModal('')
+    setErroJanela('')
     setSugestoesEquipamento([])
     setSugestoesMarca([])
     setSugestoesModelo([])
+    setDigitandoEquipamento(false)
+    setDigitandoMarca(false)
+    setDigitandoModelo(false)
   }
 
   function atualizarPatrimonio(index: number, valor: string) {
@@ -138,7 +149,7 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
   async function handleSalvar(e: { preventDefault(): void }) {
     e.preventDefault()
     if (!osEditando) return
-    setErroModal('')
+    setErroJanela('')
 
     const res = await fetch(`/api/ordens/${osEditando.id}`, {
       method: 'PUT',
@@ -157,11 +168,12 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
         aparencia: aparenciaEd,
         defeito: defeitoEd,
         observacoes: observacoesEd,
+        valorTotal: valorTotalEd,
       }),
     })
     const dados = await res.json()
-    if (!res.ok) { setErroModal(dados.erro ?? 'Erro ao salvar.'); return }
-    fecharModal()
+    if (!res.ok) { setErroJanela(dados.erro ?? 'Erro ao salvar.'); return }
+    fecharJanela()
     buscarOrdens()
   }
 
@@ -170,9 +182,64 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
     if (!confirm(`Excluir OS #${osEditando.id}? Esta ação não pode ser desfeita.`)) return
 
     const res = await fetch(`/api/ordens/${osEditando.id}`, { method: 'DELETE' })
-    if (!res.ok) { setErroModal('Erro ao excluir OS.'); return }
-    fecharModal()
+    if (!res.ok) { setErroJanela('Erro ao excluir OS.'); return }
+    fecharJanela()
     buscarOrdens()
+  }
+
+  function handleImprimir(os: OSLista) {
+    const janelaImpressao = window.open('', '_blank')
+    if (!janelaImpressao) return
+
+    const dataFormatada = new Date(os.data_entrada).toLocaleDateString('pt-BR')
+    const valorFormatado = os.valor_total != null
+      ? `R$ ${Number(os.valor_total).toFixed(2).replace('.', ',')}`
+      : '—'
+
+    janelaImpressao.document.write(`
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>OS #${os.id} — Center Son</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #222; }
+          h1 { font-size: 22px; margin-bottom: 4px; }
+          h2 { font-size: 15px; margin-top: 24px; margin-bottom: 6px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+          p { margin: 4px 0; font-size: 14px; }
+          .assinatura { margin-top: 56px; }
+        </style>
+      </head>
+      <body>
+        <h1>Center Son — Ordem de Serviço #${os.id}</h1>
+        <p>Data de entrada: ${dataFormatada}</p>
+        <p>Status: ${os.stat}</p>
+        <p>Tipo: ${os.tipo_os} — ${os.tipo_atendimento}</p>
+
+        <h2>Cliente</h2>
+        <p>Nome: ${os.cliente_nome}</p>
+        <p>Telefone: ${os.cliente_telefone || '—'}</p>
+
+        <h2>Equipamento</h2>
+        <p>Aparelho: ${os.equip_tipo} ${os.marca} ${os.modelo}</p>
+        <p>Nº de Série: ${os.numero_serie}</p>
+
+        <h2>Dados da OS</h2>
+        <p><strong>Defeito relatado:</strong> ${os.defeito_relatado || '—'}</p>
+        <p><strong>Acessórios:</strong> ${os.acessorios || '—'}</p>
+        <p><strong>Aparência:</strong> ${os.aparencia || '—'}</p>
+        <p><strong>Observações:</strong> ${os.observacoes || '—'}</p>
+        <p><strong>Valor total:</strong> ${valorFormatado}</p>
+
+        <div class="assinatura">
+          <p>_______________________________</p>
+          <p>Assinatura do cliente</p>
+        </div>
+      </body>
+      </html>
+    `)
+    janelaImpressao.document.close()
+    janelaImpressao.print()
   }
 
   return (
@@ -227,7 +294,7 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
           </thead>
           <tbody>
             {ordens.map(os => (
-              <tr key={os.id}>
+              <tr key={os.id} onClick={() => abrirEdicao(os)}>
                 <td>#{os.id}</td>
                 <td>{os.stat}</td>
                 <td>{os.tipo_os}</td>
@@ -235,13 +302,11 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
                 <td>{os.cliente_nome}</td>
                 <td>{new Date(os.data_entrada).toLocaleDateString('pt-BR')}</td>
                 <td>
-                  <button
-                    className="btn-icone"
-                    type="button"
-                    title="Editar OS"
-                    onClick={() => abrirEdicao(os)}
-                  >
-                    ✏
+                  <button className="btn-secundario" type="button" onClick={e => { e.stopPropagation(); abrirEdicao(os) }}>
+                    Editar
+                  </button>
+                  <button className="btn-secundario" type="button" onClick={e => { e.stopPropagation(); handleImprimir(os) }}>
+                    Imprimir OS
                   </button>
                 </td>
               </tr>
@@ -251,9 +316,9 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
       )}
 
       {osEditando && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2 className="modal__titulo">Editar OS #{osEditando.id}</h2>
+        <div className="janela-overlay">
+          <div className="janela">
+            <h2 className="janela__titulo">Editar OS #{osEditando.id}</h2>
             <form onSubmit={handleSalvar}>
 
               <div className="criar-os__linha">
@@ -285,12 +350,12 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
               <div className="criar-os__linha">
                 <div className="campo criar-os__campo--largo">
                   <label className="label">Equipamento <span className="obrigatorio">*</span></label>
-                  <div className="criar-os__sugestao-wrapper">
-                    <input className="input" type="text" value={equipamentoEd} onChange={e => setEquipamentoEd(e.target.value)} required />
-                    {sugestoesEquipamento.length > 0 && (
+                  <div className="criar-os__campo-sugestao">
+                    <input className="input" type="text" value={equipamentoEd} onChange={e => { setEquipamentoEd(e.target.value); setDigitandoEquipamento(true) }} required />
+                    {digitandoEquipamento && sugestoesEquipamento.length > 0 && (
                       <ul className="criar-os__busca-resultados">
                         {sugestoesEquipamento.map(s => (
-                          <li key={s} className="criar-os__busca-item" onClick={() => { setEquipamentoEd(s); setSugestoesEquipamento([]) }}>{s}</li>
+                          <li key={s} className="criar-os__busca-item" onClick={() => { setEquipamentoEd(s); setSugestoesEquipamento([]); setDigitandoEquipamento(false) }}>{s}</li>
                         ))}
                       </ul>
                     )}
@@ -298,12 +363,12 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
                 </div>
                 <div className="campo">
                   <label className="label">Marca <span className="obrigatorio">*</span></label>
-                  <div className="criar-os__sugestao-wrapper">
-                    <input className="input" type="text" value={marcaEd} onChange={e => setMarcaEd(e.target.value)} required />
-                    {sugestoesMarca.length > 0 && (
+                  <div className="criar-os__campo-sugestao">
+                    <input className="input" type="text" value={marcaEd} onChange={e => { setMarcaEd(e.target.value); setDigitandoMarca(true) }} required />
+                    {digitandoMarca && sugestoesMarca.length > 0 && (
                       <ul className="criar-os__busca-resultados">
                         {sugestoesMarca.map(s => (
-                          <li key={s} className="criar-os__busca-item" onClick={() => { setMarcaEd(s); setSugestoesMarca([]) }}>{s}</li>
+                          <li key={s} className="criar-os__busca-item" onClick={() => { setMarcaEd(s); setSugestoesMarca([]); setDigitandoMarca(false) }}>{s}</li>
                         ))}
                       </ul>
                     )}
@@ -311,12 +376,12 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
                 </div>
                 <div className="campo">
                   <label className="label">Modelo <span className="obrigatorio">*</span></label>
-                  <div className="criar-os__sugestao-wrapper">
-                    <input className="input" type="text" value={modeloEd} onChange={e => setModeloEd(e.target.value)} required />
-                    {sugestoesModelo.length > 0 && (
+                  <div className="criar-os__campo-sugestao">
+                    <input className="input" type="text" value={modeloEd} onChange={e => { setModeloEd(e.target.value); setDigitandoModelo(true) }} required />
+                    {digitandoModelo && sugestoesModelo.length > 0 && (
                       <ul className="criar-os__busca-resultados">
                         {sugestoesModelo.map(s => (
-                          <li key={s} className="criar-os__busca-item" onClick={() => { setModeloEd(s); setSugestoesModelo([]) }}>{s}</li>
+                          <li key={s} className="criar-os__busca-item" onClick={() => { setModeloEd(s); setSugestoesModelo([]); setDigitandoModelo(false) }}>{s}</li>
                         ))}
                       </ul>
                     )}
@@ -364,11 +429,16 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
                 <textarea className="textarea" value={observacoesEd} onChange={e => setObservacoesEd(e.target.value)} />
               </div>
 
-              {erroModal && <p className="criar-os__erro">{erroModal}</p>}
+              <div className="campo">
+                <label className="label">Valor Total do Orçamento (R$)</label>
+                <input className="input" type="number" min="0" step="0.01" placeholder="0,00" value={valorTotalEd} onChange={e => setValorTotalEd(e.target.value)} />
+              </div>
 
-              <div className="modal__rodape">
-                <button className="btn-perigo" type="button" onClick={handleExcluir}>Excluir</button>
-                <button className="btn-secundario" type="button" onClick={fecharModal}>Cancelar</button>
+              {erroJanela && <p className="criar-os__erro">{erroJanela}</p>}
+
+              <div className="janela__rodape">
+                <button className="btn-secundario" type="button" onClick={handleExcluir}>Excluir</button>
+                <button className="btn-secundario" type="button" onClick={fecharJanela}>Cancelar</button>
                 <button className="btn-primario" type="submit">Salvar</button>
               </div>
             </form>

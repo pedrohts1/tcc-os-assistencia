@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS Ordens_Servico(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     equipamento_id INTEGER,
     tecnico_id INTEGER,
-    stat VARCHAR(50),
+    stat VARCHAR(50) CHECK (stat IN ('Aguardando Avaliação','Aguardando Autorização Orçamento','Autorizado, Aguardando Peça','Autorizado, Reparo em Andamento','Pronto, Avisar Cliente','Finalizado')),
     tipo_os VARCHAR(50),
     tipo_atendimento VARCHAR(50),
     defeito_relatado TEXT,

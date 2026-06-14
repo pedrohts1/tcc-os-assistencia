@@ -1,34 +1,55 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { ClienteInfo, OSInfo } from '@/lib/types'
 
 interface Props {
   onCancelar: () => void
   onSalvar: (idOrdem: number) => void
 }
 
-type Fase = 'cliente' | 'lista-os' | 'formulario'
+interface ClienteResultado {
+  id: number
+  nome: string
+  cpf: string
+  telefone: string
+  email: string
+  endereco: string
+}
+
+interface OSLista {
+  id: number
+  stat: string
+  equip_tipo: string
+  marca: string
+  modelo: string
+  data_entrada: string
+}
+
+const STATUS_OPCOES = [
+  'Aguardando Avaliação',
+  'Aguardando Autorização Orçamento',
+  'Autorizado, Aguardando Peça',
+  'Autorizado, Reparo em Andamento',
+  'Pronto, Avisar Cliente',
+  'Finalizado',
+]
 
 export default function CriarOS({ onCancelar, onSalvar }: Props) {
-  const [fase, setFase] = useState<Fase>('cliente')
+  const [fase, setFase] = useState<'cliente' | 'lista-os' | 'formulario'>('cliente')
 
-  // --- Cliente ---
   const [buscaCliente, setBuscaCliente] = useState('')
-  const [resultadosBusca, setResultadosBusca] = useState<ClienteInfo[]>([])
-  const [clienteIdSelecionado, setClienteIdSelecionado] = useState<number | null>(null)
-  const [clienteTravado, setClienteTravado] = useState(false)
-  const [nomeCliente, setNomeCliente] = useState('')
-  const [cpfCliente, setCpfCliente] = useState('')
-  const [telefoneCliente, setTelefoneCliente] = useState('')
-  const [emailCliente, setEmailCliente] = useState('')
-  const [enderecoCliente, setEnderecoCliente] = useState('')
+  const [resultadosCliente, setResultadosCliente] = useState<ClienteResultado[]>([])
+  const [clienteSelecionado, setClienteSelecionado] = useState<ClienteResultado | null>(null)
+  const [modoNovoCliente, setModoNovoCliente] = useState(false)
+  const [novoNome, setNovoNome] = useState('')
+  const [novoCpf, setNovoCpf] = useState('')
+  const [novoTelefone, setNovoTelefone] = useState('')
+  const [novoEmail, setNovoEmail] = useState('')
+  const [novoEndereco, setNovoEndereco] = useState('')
+  const [erroCliente, setErroCliente] = useState('')
+  const [salvandoCliente, setSalvandoCliente] = useState(false)
 
-  // --- Lista de OS ---
-  const [osExistentes, setOsExistentes] = useState<OSInfo[]>([])
-  const [carregandoOS, setCarregandoOS] = useState(false)
-  const [osEditando, setOsEditando] = useState<OSInfo | null>(null)
+  const [ordensExistentes, setOrdensExistentes] = useState<OSLista[]>([])
 
-  // --- Formulário OS ---
   const [statusOS, setStatusOS] = useState('Aguardando Avaliação')
   const [tipoAtendimento, setTipoAtendimento] = useState('')
   const [tipoOS, setTipoOS] = useState('')
@@ -44,153 +65,81 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
   const [aparencia, setAparencia] = useState('')
   const [defeito, setDefeito] = useState('')
   const [observacoes, setObservacoes] = useState('')
+  const [valorTotal, setValorTotal] = useState('')
+  const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
 
-  // Busca automática de clientes
   useEffect(() => {
-    if (clienteTravado) return
-    if (buscaCliente.trim() === '') { setResultadosBusca([]); return }
-
+    if (buscaCliente.trim() === '' || clienteSelecionado) { setResultadosCliente([]); return }
     const timer = setTimeout(async () => {
       const res = await fetch(`/api/clientes?busca=${encodeURIComponent(buscaCliente)}`)
-      const dados = await res.json()
-      setResultadosBusca(dados)
+      setResultadosCliente(res.ok ? await res.json() : [])
     }, 300)
-
     return () => clearTimeout(timer)
-  }, [buscaCliente, clienteTravado])
+  }, [buscaCliente, clienteSelecionado])
 
-  // Sugestões para equipamento
   useEffect(() => {
     if (equipamento.trim() === '') { setSugestoesEquipamento([]); return }
-
     const timer = setTimeout(async () => {
       const res = await fetch(`/api/sugestoes?campo=tipo&busca=${encodeURIComponent(equipamento)}`)
-      const dados = await res.json()
-      setSugestoesEquipamento(dados)
+      setSugestoesEquipamento(res.ok ? await res.json() : [])
     }, 300)
-
     return () => clearTimeout(timer)
   }, [equipamento])
 
-  // Sugestões para marca
   useEffect(() => {
     if (marca.trim() === '') { setSugestoesMarca([]); return }
-
     const timer = setTimeout(async () => {
       const res = await fetch(`/api/sugestoes?campo=marca&busca=${encodeURIComponent(marca)}`)
-      const dados = await res.json()
-      setSugestoesMarca(dados)
+      setSugestoesMarca(res.ok ? await res.json() : [])
     }, 300)
-
     return () => clearTimeout(timer)
   }, [marca])
 
-  // Sugestões para modelo
   useEffect(() => {
     if (modelo.trim() === '') { setSugestoesModelo([]); return }
-
     const timer = setTimeout(async () => {
       const res = await fetch(`/api/sugestoes?campo=modelo&busca=${encodeURIComponent(modelo)}`)
-      const dados = await res.json()
-      setSugestoesModelo(dados)
+      setSugestoesModelo(res.ok ? await res.json() : [])
     }, 300)
-
     return () => clearTimeout(timer)
   }, [modelo])
 
-  function selecionarCliente(cliente: ClienteInfo) {
-    setClienteIdSelecionado(cliente.id)
-    setNomeCliente(cliente.nome)
-    setCpfCliente(cliente.cpf ?? '')
-    setTelefoneCliente(cliente.telefone ?? '')
-    setEmailCliente(cliente.email ?? '')
-    setEnderecoCliente(cliente.endereco ?? '')
-    setBuscaCliente(cliente.nome)
-    setResultadosBusca([])
-    setClienteTravado(true)
+  function selecionarCliente(c: ClienteResultado) {
+    setClienteSelecionado(c)
+    setBuscaCliente(c.nome)
+    setResultadosCliente([])
   }
 
   function limparCliente() {
-    setClienteIdSelecionado(null)
-    setClienteTravado(false)
+    setClienteSelecionado(null)
     setBuscaCliente('')
-    setNomeCliente('')
-    setCpfCliente('')
-    setTelefoneCliente('')
-    setEmailCliente('')
-    setEnderecoCliente('')
-    setResultadosBusca([])
+    setModoNovoCliente(false)
+    setErroCliente('')
   }
 
   async function handleContinuar() {
-    if (!nomeCliente.trim()) return
-
-    if (clienteIdSelecionado) {
-      setCarregandoOS(true)
-      const res = await fetch(`/api/ordens?clienteId=${clienteIdSelecionado}`)
-      const dados = res.ok ? await res.json() : []
-      setOsExistentes(Array.isArray(dados) ? dados : [])
-      setCarregandoOS(false)
-      setFase('lista-os')
-    } else {
-      limparFormulario()
-      setFase('formulario')
-    }
+    if (!clienteSelecionado) return
+    const res = await fetch(`/api/ordens?clienteId=${clienteSelecionado.id}`)
+    const dados = res.ok ? await res.json() : []
+    setOrdensExistentes(Array.isArray(dados) ? dados : [])
+    setFase('lista-os')
   }
 
-  function limparFormulario() {
-    setOsEditando(null)
-    setStatusOS('Aguardando Avaliação')
-    setTipoAtendimento('')
-    setTipoOS('')
-    setEquipamento('')
-    setMarca('')
-    setModelo('')
-    setNumeroSerie('')
-    setCodigosPatrimonio([''])
-    setAcessorios('')
-    setAparencia('')
-    setDefeito('')
-    setObservacoes('')
-    setErro('')
-  }
-
-  function handleNovaOS() {
-    limparFormulario()
-    setFase('formulario')
-  }
-
-  function handleEditarOS(os: OSInfo) {
-    setOsEditando(os)
-    setStatusOS(os.stat || 'Aguardando Avaliação')
-    setTipoAtendimento(os.tipo_atendimento || '')
-    setTipoOS(os.tipo_os || '')
-    setEquipamento(os.equip_tipo || '')
-    setMarca(os.marca || '')
-    setModelo(os.modelo || '')
-    setNumeroSerie(os.numero_serie || '')
-    setCodigosPatrimonio(
-      os.codigos_patrimonio ? JSON.parse(os.codigos_patrimonio) : ['']
-    )
-    setAcessorios(os.acessorios || '')
-    setAparencia(os.aparencia || '')
-    setDefeito(os.defeito_relatado || '')
-    setObservacoes(os.observacoes || '')
-    setErro('')
-    setFase('formulario')
-  }
-
-  function voltarDoFormulario() {
-    if (clienteIdSelecionado) {
-      setFase('lista-os')
-    } else {
-      setFase('cliente')
-    }
-  }
-
-  function adicionarPatrimonio() {
-    setCodigosPatrimonio(prev => [...prev, ''])
+  async function handleSalvarNovoCliente(e: { preventDefault(): void }) {
+    e.preventDefault()
+    setSalvandoCliente(true)
+    setErroCliente('')
+    const res = await fetch('/api/clientes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: novoNome, cpf: novoCpf, telefone: novoTelefone, email: novoEmail, endereco: novoEndereco }),
+    })
+    const dados = await res.json()
+    setSalvandoCliente(false)
+    if (!res.ok) { setErroCliente(dados.erro ?? 'Erro ao criar cliente.'); return }
+    selecionarCliente({ id: dados.id, nome: novoNome, cpf: novoCpf, telefone: novoTelefone, email: novoEmail, endereco: novoEndereco })
+    setModoNovoCliente(false)
   }
 
   function atualizarPatrimonio(index: number, valor: string) {
@@ -199,17 +148,18 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
+    if (!clienteSelecionado) return
+    setSalvando(true)
     setErro('')
-
-    if (osEditando) {
-      const res = await fetch(`/api/ordens/${osEditando.id}`, {
-        method: 'PUT',
+    try {
+      const res = await fetch('/api/ordens', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          equipId: osEditando.equip_id,
+          clienteId: clienteSelecionado.id,
           statusOS,
-          tipoOS,
           tipoAtendimento,
+          tipoOS,
           equipamento,
           marca,
           modelo,
@@ -219,363 +169,378 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
           aparencia,
           defeito,
           observacoes,
+          valorTotal,
         }),
       })
       const dados = await res.json()
-      if (!res.ok) { setErro(dados.erro ?? 'Erro ao atualizar OS.'); return }
+      if (!res.ok) { setErro(dados.erro ?? 'Erro inesperado.'); return }
       onSalvar(dados.id)
-      return
+    } catch {
+      setErro('Não foi possível conectar ao servidor.')
+    } finally {
+      setSalvando(false)
     }
+  }
 
-    let clienteId = clienteIdSelecionado
+  if (fase === 'cliente') {
+    return (
+      <div className="criar-os">
+        <h2 className="criar-os__secao-titulo">Buscar ou Cadastrar Cliente</h2>
 
-    if (!clienteId) {
-      const resCliente = await fetch('/api/clientes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: nomeCliente,
-          cpf: cpfCliente,
-          telefone: telefoneCliente,
-          email: emailCliente,
-          endereco: enderecoCliente,
-        }),
-      })
-      const dadosCliente = await resCliente.json()
-      if (!resCliente.ok) { setErro(dadosCliente.erro ?? 'Erro ao cadastrar cliente.'); return }
-      clienteId = dadosCliente.id
-    }
+        {!modoNovoCliente ? (
+          <>
+            <div className="campo">
+              <label className="label">Nome, CPF ou Telefone <span className="obrigatorio">*</span></label>
+              <div className="criar-os__campo-sugestao">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Digite para buscar..."
+                  value={buscaCliente}
+                  onChange={e => { setBuscaCliente(e.target.value); setClienteSelecionado(null) }}
+                  disabled={!!clienteSelecionado}
+                />
+                {resultadosCliente.length > 0 && (
+                  <ul className="criar-os__busca-resultados">
+                    {resultadosCliente.map(c => (
+                      <li key={c.id} className="criar-os__busca-item" onClick={() => selecionarCliente(c)}>
+                        {c.nome} — {c.cpf} — {c.telefone}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
 
-    const resOrdem = await fetch('/api/ordens', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        clienteId,
-        statusOS,
-        tipoAtendimento,
-        tipoOS,
-        equipamento,
-        marca,
-        modelo,
-        numeroSerie,
-        codigosPatrimonio,
-        acessorios,
-        aparencia,
-        defeito,
-        observacoes,
-      }),
-    })
-    const dadosOrdem = await resOrdem.json()
-    if (!resOrdem.ok) { setErro(dadosOrdem.erro ?? 'Erro ao criar OS.'); return }
+            {clienteSelecionado && (
+              <div className="criar-os__cliente-dados">
+                <div className="criar-os__cliente-campo">
+                  <span className="label">Nome</span>
+                  <span>{clienteSelecionado.nome}</span>
+                </div>
+                <div className="criar-os__cliente-campo">
+                  <span className="label">CPF</span>
+                  <span>{clienteSelecionado.cpf}</span>
+                </div>
+                <div className="criar-os__cliente-campo">
+                  <span className="label">Telefone</span>
+                  <span>{clienteSelecionado.telefone}</span>
+                </div>
+                <div className="criar-os__cliente-campo">
+                  <span className="label">E-mail</span>
+                  <span>{clienteSelecionado.email}</span>
+                </div>
+                <div className="criar-os__cliente-campo">
+                  <span className="label">Endereço</span>
+                  <span>{clienteSelecionado.endereco}</span>
+                </div>
+              </div>
+            )}
 
-    onSalvar(dadosOrdem.id)
+            {erroCliente && <p className="criar-os__erro">{erroCliente}</p>}
+
+            <div className="criar-os__rodape">
+              <button className="btn-secundario" type="button" onClick={onCancelar}>Cancelar</button>
+              {!clienteSelecionado && (
+                <button className="btn-secundario" type="button" onClick={() => setModoNovoCliente(true)}>Novo Cliente</button>
+              )}
+              {clienteSelecionado && (
+                <>
+                  <button className="btn-secundario" type="button" onClick={limparCliente}>Trocar Cliente</button>
+                  <button className="btn-primario" type="button" onClick={handleContinuar}>Continuar →</button>
+                </>
+              )}
+            </div>
+          </>
+        ) : (
+          <form onSubmit={handleSalvarNovoCliente}>
+            <div className="campo">
+              <label className="label">Nome <span className="obrigatorio">*</span></label>
+              <input className="input" type="text" value={novoNome} onChange={e => setNovoNome(e.target.value)} required />
+            </div>
+            <div className="campo">
+              <label className="label">CPF <span className="obrigatorio">*</span></label>
+              <input className="input" type="text" value={novoCpf} onChange={e => setNovoCpf(e.target.value)} required />
+            </div>
+            <div className="campo">
+              <label className="label">Telefone</label>
+              <input className="input" type="text" value={novoTelefone} onChange={e => setNovoTelefone(e.target.value)} />
+            </div>
+            <div className="campo">
+              <label className="label">E-mail</label>
+              <input className="input" type="text" value={novoEmail} onChange={e => setNovoEmail(e.target.value)} />
+            </div>
+            <div className="campo">
+              <label className="label">Endereço</label>
+              <input className="input" type="text" value={novoEndereco} onChange={e => setNovoEndereco(e.target.value)} />
+            </div>
+            {erroCliente && <p className="criar-os__erro">{erroCliente}</p>}
+            <div className="criar-os__rodape">
+              <button className="btn-secundario" type="button" onClick={() => setModoNovoCliente(false)}>Voltar</button>
+              <button className="btn-primario" type="submit" disabled={salvandoCliente}>
+                {salvandoCliente ? 'Salvando...' : 'Salvar Cliente'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    )
+  }
+
+  if (fase === 'lista-os') {
+    return (
+      <div className="criar-os">
+        <h2 className="criar-os__secao-titulo">OS de {clienteSelecionado?.nome}</h2>
+
+        {ordensExistentes.length === 0 ? (
+          <p>Nenhuma OS anterior para este cliente.</p>
+        ) : (
+          <table className="listar-os__tabela">
+            <thead>
+              <tr>
+                <th>Nº OS</th>
+                <th>Status</th>
+                <th>Equipamento</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ordensExistentes.map(os => (
+                <tr key={os.id}>
+                  <td>#{os.id}</td>
+                  <td>{os.stat}</td>
+                  <td>{os.equip_tipo} {os.marca} {os.modelo}</td>
+                  <td>{new Date(os.data_entrada).toLocaleDateString('pt-BR')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        <div className="criar-os__rodape">
+          <button className="btn-secundario" type="button" onClick={() => setFase('cliente')}>Voltar</button>
+          <button className="btn-primario" type="button" onClick={() => setFase('formulario')}>Nova OS →</button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="criar-os">
+      <div className="criar-os__cliente">
+        <h2 className="criar-os__cliente-titulo">Cliente</h2>
+        <div className="criar-os__cliente-dados">
+          <div className="criar-os__cliente-campo">
+            <span className="label">Nome</span>
+            <span>{clienteSelecionado?.nome}</span>
+          </div>
+          <div className="criar-os__cliente-campo">
+            <span className="label">Telefone</span>
+            <span>{clienteSelecionado?.telefone}</span>
+          </div>
+          <div className="criar-os__cliente-campo">
+            <span className="label">E-mail</span>
+            <span>{clienteSelecionado?.email}</span>
+          </div>
+          <div className="criar-os__cliente-campo">
+            <span className="label">Endereço</span>
+            <span>{clienteSelecionado?.endereco}</span>
+          </div>
+        </div>
+      </div>
 
-      {fase === 'cliente' && (
-        <>
-          <div className="criar-os__cliente">
-            <h2 className="criar-os__cliente-titulo">Cliente</h2>
+      <form className="criar-os__formulario" onSubmit={handleSubmit}>
+        <h2 className="criar-os__secao-titulo">Dados da OS</h2>
 
-            <div className="criar-os__busca-wrapper">
+        <div className="criar-os__linha">
+          <div className="campo">
+            <label className="label">Status <span className="obrigatorio">*</span></label>
+            <select className="select" value={statusOS} onChange={e => setStatusOS(e.target.value)} required>
+              {STATUS_OPCOES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="campo">
+            <label className="label">Tipo de Atendimento <span className="obrigatorio">*</span></label>
+            <select className="select" value={tipoAtendimento} onChange={e => setTipoAtendimento(e.target.value)} required>
+              <option value="">Selecione</option>
+              <option value="Balcão">Balcão</option>
+              <option value="Domicílio">Domicílio</option>
+              <option value="Remoto">Remoto</option>
+            </select>
+          </div>
+          <div className="campo">
+            <label className="label">Tipo de OS <span className="obrigatorio">*</span></label>
+            <select className="select" value={tipoOS} onChange={e => setTipoOS(e.target.value)} required>
+              <option value="">Selecione</option>
+              <option value="Orçamento">Orçamento</option>
+              <option value="Garantia">Garantia</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="criar-os__linha">
+          <div className="campo criar-os__campo--largo">
+            <label className="label">Equipamento / Aparelho <span className="obrigatorio">*</span></label>
+            <div className="criar-os__campo-sugestao">
               <input
                 className="input"
                 type="text"
-                placeholder="Buscar por nome ou CPF..."
-                value={buscaCliente}
-                onChange={e => { if (!clienteTravado) setBuscaCliente(e.target.value) }}
-                disabled={clienteTravado}
+                placeholder="Ex.: Celular, Notebook, TV..."
+                value={equipamento}
+                onChange={e => setEquipamento(e.target.value)}
+                required
               />
-              {clienteTravado && (
-                <button className="btn-secundario" type="button" onClick={limparCliente}>
-                  Alterar
-                </button>
-              )}
-              {resultadosBusca.length > 0 && (
+              {sugestoesEquipamento.length > 0 && (
                 <ul className="criar-os__busca-resultados">
-                  {resultadosBusca.map(c => (
-                    <li key={c.id} className="criar-os__busca-item" onClick={() => selecionarCliente(c)}>
-                      {c.nome}{c.cpf ? ` — ${c.cpf}` : ''}
-                    </li>
+                  {sugestoesEquipamento.map(s => (
+                    <li key={s} className="criar-os__busca-item" onClick={() => { setEquipamento(s); setSugestoesEquipamento([]) }}>{s}</li>
                   ))}
                 </ul>
               )}
             </div>
-
-            <div className="criar-os__cliente-dados">
-              <div className="criar-os__cliente-campo">
-                <label className="label">Nome <span className="obrigatorio">*</span></label>
-                <input className="input" type="text" value={nomeCliente} onChange={e => setNomeCliente(e.target.value)} disabled={clienteTravado} />
-              </div>
-              <div className="criar-os__cliente-campo">
-                <label className="label">CPF <span className="obrigatorio">*</span></label>
-                <input className="input" type="text" value={cpfCliente} onChange={e => setCpfCliente(e.target.value)} disabled={clienteTravado} required />
-              </div>
-              <div className="criar-os__cliente-campo">
-                <label className="label">Telefone</label>
-                <input className="input" type="text" value={telefoneCliente} onChange={e => setTelefoneCliente(e.target.value)} disabled={clienteTravado} />
-              </div>
-              <div className="criar-os__cliente-campo">
-                <label className="label">E-mail</label>
-                <input className="input" type="text" value={emailCliente} onChange={e => setEmailCliente(e.target.value)} disabled={clienteTravado} />
-              </div>
-              <div className="criar-os__cliente-campo">
-                <label className="label">Endereço</label>
-                <input className="input" type="text" value={enderecoCliente} onChange={e => setEnderecoCliente(e.target.value)} disabled={clienteTravado} />
-              </div>
-            </div>
           </div>
-
-          <div className="criar-os__rodape">
-            <button className="btn-secundario" type="button" onClick={onCancelar}>
-              Cancelar
-            </button>
-            <button className="btn-primario" type="button" onClick={handleContinuar} disabled={!nomeCliente.trim() || !cpfCliente.trim()}>
-              Continuar →
-            </button>
-          </div>
-        </>
-      )}
-
-      {fase === 'lista-os' && (
-        <>
-          <h2 className="criar-os__secao-titulo">Ordens de Serviço</h2>
-          
-          <div className="criar-os__lista-os">
-            <div className='card-header'>
-              <h2 className='card-titulo'>Cliente<span className='info-icon'> ⓘ</span></h2>
-              <div className='card-dados' >
-                <label className="label-identificador">Nome</label>
-                <p className="nome-valor">{nomeCliente}</p>
-              </div>
-            </div>
-
-            {carregandoOS ? (
-              <p>Carregando...</p>
-            ) : osExistentes.length === 0 ? (
-              <p>Nenhuma OS encontrada para este cliente.</p>
-            ) : (
-              <table className="criar-os__tabela">
-                <thead>
-                  <tr>
-                    <th>Nº OS</th>
-                    <th>Tipo de OS</th>
-                    <th>Situação</th>
-                    <th>Tipo de Atendimento</th>
-                    <th>Entrada</th>
-                    <th>Equipamento</th>
-                    <th>Marca</th>
-                    <th>Modelo</th>
-                    <th>Nº de Série</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {osExistentes.map(os => (
-                    <tr key={os.id} className="criar-os__tabela-linha" onClick={() => handleEditarOS(os)}>
-                      <td>{os.id}</td>
-                      <td>{os.tipo_os}</td>
-                      <td data-status={os.stat}>{os.stat}</td>
-                      <td>{os.tipo_atendimento}</td>
-                      <td>{new Date(os.data_entrada).toLocaleDateString('pt-BR')}</td>
-                      <td>{os.equip_tipo}</td>
-                      <td>{os.marca}</td>
-                      <td>{os.modelo}</td>
-                      <td>{os.numero_serie}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          <div className="criar-os__rodape">
-            <button className="btn-secundario" type="button" onClick={() => setFase('cliente')}>
-              ← Voltar
-            </button>
-            <button className="btn-primario" type="button" onClick={handleNovaOS}>
-              Nova OS
-            </button>
-          </div>
-        </>
-      )}
-
-      {fase === 'formulario' && (
-        <form className="criar-os__formulario" onSubmit={handleSubmit}>
-          <h2 className="criar-os__secao-titulo">
-            {osEditando ? `Editar OS #${osEditando.id}` : 'Nova Ordem de Serviço'} — {nomeCliente}
-          </h2>
-
-          <div className="criar-os__linha">
-            <div className="campo">
-              <label className="label">Status <span className="obrigatorio">*</span></label>
-              <select className="select" value={statusOS} onChange={e => setStatusOS(e.target.value)} required>
-                <option value="Aguardando avaliação">Aguardando avaliação</option>
-                <option value="Aguardando, autorização orçamento">Aguardando, autorização orçamento</option>
-                <option value="Autorizado, aguardando peça">Autorizado, aguardando peça</option>
-                <option value="Autorizado, reparo em andamento">Autorizado, reparo em andamento</option>
-                <option value="Pronto, cliente avisado">Pronto, cliente avisado</option>
-                <option value="Garantia, aguardando peça">Garantia, aguardando peça Peça</option>
-              </select>
-            </div>
-            <div className="campo">
-              <label className="label">Tipo de Atendimento <span className="obrigatorio">*</span></label>
-              <select className="select" value={tipoAtendimento} onChange={e => setTipoAtendimento(e.target.value)} required>
-                <option value="">Selecione</option>
-                <option value="Balcão">Balcão</option>
-                <option value="Domicílio">Domicílio</option>
-                <option value="Remoto">Remoto</option>
-              </select>
-            </div>
-            <div className="campo">
-              <label className="label">Tipo de OS <span className="obrigatorio">*</span></label>
-              <select className="select" value={tipoOS} onChange={e => setTipoOS(e.target.value)} required>
-                <option value="">Selecione</option>
-                <option value="Orçamento">Orçamento</option>
-                <option value="Garantia">Garantia</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="criar-os__linha">
-            <div className="campo criar-os__campo--largo">
-              <label className="label">Equipamento / Aparelho <span className="obrigatorio">*</span></label>
-              <div className="criar-os__sugestao-wrapper">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Ex.: Celular, Notebook, TV..."
-                  value={equipamento}
-                  onChange={e => setEquipamento(e.target.value)}
-                  required
-                />
-                {sugestoesEquipamento.length > 0 && (
-                  <ul className="criar-os__busca-resultados">
-                    {sugestoesEquipamento.map(s => (
-                      <li key={s} className="criar-os__busca-item" onClick={() => { setEquipamento(s); setSugestoesEquipamento([]) }}>
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-            <div className="campo">
-              <label className="label">Marca <span className="obrigatorio">*</span></label>
-              <div className="criar-os__sugestao-wrapper">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Ex.: Samsung, Dell, HP..."
-                  value={marca}
-                  onChange={e => setMarca(e.target.value)}
-                  required
-                />
-                {sugestoesMarca.length > 0 && (
-                  <ul className="criar-os__busca-resultados">
-                    {sugestoesMarca.map(s => (
-                      <li key={s} className="criar-os__busca-item" onClick={() => { setMarca(s); setSugestoesMarca([]) }}>
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-            <div className="campo">
-              <label className="label">Modelo <span className="obrigatorio">*</span></label>
-              <div className="criar-os__sugestao-wrapper">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Ex.: Galaxy S23, Inspiron 15..."
-                  value={modelo}
-                  onChange={e => setModelo(e.target.value)}
-                  required
-                />
-                {sugestoesModelo.length > 0 && (
-                  <ul className="criar-os__busca-resultados">
-                    {sugestoesModelo.map(s => (
-                      <li key={s} className="criar-os__busca-item" onClick={() => { setModelo(s); setSugestoesModelo([]) }}>
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="criar-os__linha">
-            <div className="campo">
-              <label className="label">Nº de Série <span className="obrigatorio">*</span></label>
+          <div className="campo">
+            <label className="label">Marca <span className="obrigatorio">*</span></label>
+            <div className="criar-os__campo-sugestao">
               <input
                 className="input"
                 type="text"
-                placeholder="Ex.: SN123456789"
-                value={numeroSerie}
-                onChange={e => setNumeroSerie(e.target.value)}
+                placeholder="Ex.: Samsung, Dell..."
+                value={marca}
+                onChange={e => setMarca(e.target.value)}
                 required
               />
-            </div>
-            <div className="campo">
-              <label className="label">Código / Patrimônio</label>
-              <div className="criar-os__patrimonio-lista">
-                {codigosPatrimonio.map((codigo, index) => (
-                  <div key={index} className="criar-os__patrimonio-item">
-                    <input
-                      className="input"
-                      type="text"
-                      placeholder="Ex.: PAT-000123"
-                      value={codigo}
-                      onChange={e => atualizarPatrimonio(index, e.target.value)}
-                    />
-                    {index === codigosPatrimonio.length - 1 && (
-                      <button className="criar-os__btn-adicionar-patrimonio" type="button" onClick={adicionarPatrimonio}>
-                        +
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
+              {sugestoesMarca.length > 0 && (
+                <ul className="criar-os__busca-resultados">
+                  {sugestoesMarca.map(s => (
+                    <li key={s} className="criar-os__busca-item" onClick={() => { setMarca(s); setSugestoesMarca([]) }}>{s}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
-          <div className="condicoes">
-              <div className="campo">
-              <label className="label">Acessórios / Itens Inclusos</label>
-              <textarea className="textarea" placeholder="Ex.: Carregador, Cabo USB..." value={acessorios} onChange={e => setAcessorios(e.target.value)} />
-            </div>
-
-            <div className="campo">
-              <label className="label">Aparência do Aparelho <span className="obrigatorio">*</span></label>
-              <textarea className="textarea" placeholder="Ex.: Boa, Ruim, Riscada, Trincada..." value={aparencia} onChange={e => setAparencia(e.target.value)} required />
-            </div>
-
-            <div className="campo">
-              <label className="label">Defeito Relatado <span className="obrigatorio">*</span></label>
-              <textarea className="textarea" placeholder="Descreva o defeito relatado pelo cliente..." value={defeito} onChange={e => setDefeito(e.target.value)} required />
-            </div>
-
-            <div className="campo">
-              <label className="label">Observações</label>
-              <textarea className="textarea" placeholder="Informações adicionais (opcional)..." value={observacoes} onChange={e => setObservacoes(e.target.value)} />
+          <div className="campo">
+            <label className="label">Modelo <span className="obrigatorio">*</span></label>
+            <div className="criar-os__campo-sugestao">
+              <input
+                className="input"
+                type="text"
+                placeholder="Ex.: Galaxy S23..."
+                value={modelo}
+                onChange={e => setModelo(e.target.value)}
+                required
+              />
+              {sugestoesModelo.length > 0 && (
+                <ul className="criar-os__busca-resultados">
+                  {sugestoesModelo.map(s => (
+                    <li key={s} className="criar-os__busca-item" onClick={() => { setModelo(s); setSugestoesModelo([]) }}>{s}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
+        </div>
 
-          {erro && <p className="criar-os__erro">{erro}</p>}
-
-          <div className="criar-os__rodape">
-            <button className="btn-secundario" type="button" onClick={voltarDoFormulario}>
-              ← Voltar
-            </button>
-            <button className="btn-primario" type="submit">
-              {osEditando ? 'Atualizar →' : 'Salvar →'}
-            </button>
+        <div className="criar-os__linha">
+          <div className="campo">
+            <label className="label">Nº de Série <span className="obrigatorio">*</span></label>
+            <input
+              className="input"
+              type="text"
+              placeholder="Ex.: SN123456789"
+              value={numeroSerie}
+              onChange={e => setNumeroSerie(e.target.value)}
+              required
+            />
           </div>
-        </form>
-      )}
+          <div className="campo">
+            <label className="label">Código / Patrimônio</label>
+            <div className="criar-os__patrimonio-lista">
+              {codigosPatrimonio.map((codigo, index) => (
+                <div key={index} className="criar-os__patrimonio-item">
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="Ex.: PAT-000123"
+                    value={codigo}
+                    onChange={e => atualizarPatrimonio(index, e.target.value)}
+                  />
+                  {index === codigosPatrimonio.length - 1 && (
+                    <button
+                      className="criar-os__btn-adicionar-patrimonio"
+                      type="button"
+                      onClick={() => setCodigosPatrimonio(prev => [...prev, ''])}
+                    >+</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
+        <div className="campo">
+          <label className="label">Acessórios / Itens Inclusos</label>
+          <textarea
+            className="textarea"
+            placeholder="Ex.: Carregador, Cabo USB, Controle..."
+            value={acessorios}
+            onChange={e => setAcessorios(e.target.value)}
+          />
+        </div>
+
+        <div className="campo">
+          <label className="label">Aparência do Aparelho <span className="obrigatorio">*</span></label>
+          <textarea
+            className="textarea"
+            placeholder="Ex.: Boa, Ruim, Suja, Riscada, Trincada..."
+            value={aparencia}
+            onChange={e => setAparencia(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="campo">
+          <label className="label">Defeito Relatado <span className="obrigatorio">*</span></label>
+          <textarea
+            className="textarea"
+            placeholder="Descreva o defeito relatado pelo cliente..."
+            value={defeito}
+            onChange={e => setDefeito(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="campo">
+          <label className="label">Observações</label>
+          <textarea
+            className="textarea"
+            placeholder="Informações adicionais (opcional)..."
+            value={observacoes}
+            onChange={e => setObservacoes(e.target.value)}
+          />
+        </div>
+
+        <div className="campo">
+          <label className="label">Valor Total do Orçamento (R$)</label>
+          <input
+            className="input"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0,00"
+            value={valorTotal}
+            onChange={e => setValorTotal(e.target.value)}
+          />
+        </div>
+
+        <div className="criar-os__rodape">
+          {erro && <span className="criar-os__erro">{erro}</span>}
+          <button className="btn-secundario" type="button" onClick={() => setFase('lista-os')}>Voltar</button>
+          <button className="btn-primario" type="submit" disabled={salvando}>
+            {salvando ? 'Salvando...' : 'Salvar OS →'}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

@@ -117,7 +117,7 @@ export default function Clientes({ onVerOS }: Props) {
                     title="Editar cliente"
                     onClick={e => { e.stopPropagation(); abrirEdicao(c) }}
                   >
-                    ✏
+                    Editar
                   </button>
                 </td>
               </tr>
@@ -127,9 +127,9 @@ export default function Clientes({ onVerOS }: Props) {
       )}
 
       {clienteEditando && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2 className="modal__titulo">Editar Cliente</h2>
+        <div className="janela-overlay">
+          <div className="janela">
+            <h2 className="janela__titulo">Editar Cliente</h2>
             <form onSubmit={handleSalvarCliente}>
               <div className="campo">
                 <label className="label">Nome <span className="obrigatorio">*</span></label>
@@ -154,7 +154,7 @@ export default function Clientes({ onVerOS }: Props) {
 
               {erroModal && <p className="criar-os__erro">{erroModal}</p>}
 
-              <div className="modal__rodape">
+              <div className="janela__rodape">
                 <button className="btn-secundario" type="button" onClick={fecharModal}>Cancelar</button>
                 <button className="btn-primario" type="submit">Salvar</button>
               </div>
