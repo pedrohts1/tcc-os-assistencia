@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { formatarCPF, formatarTelefone, validarCPF } from '@/lib/mascaras'
 
 interface Props {
   onCancelar: () => void
@@ -128,6 +129,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
 
   async function handleSalvarNovoCliente(e: { preventDefault(): void }) {
     e.preventDefault()
+    if (!validarCPF(novoCpf)) { setErroCliente('CPF inválido.'); return }
     setSalvandoCliente(true)
     setErroCliente('')
     const res = await fetch('/api/clientes', {
@@ -256,23 +258,23 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
           <form onSubmit={handleSalvarNovoCliente}>
             <div className="campo">
               <label className="label">Nome <span className="obrigatorio">*</span></label>
-              <input className="input" type="text" value={novoNome} onChange={e => setNovoNome(e.target.value)} required />
+              <input className="input" type="text" value={novoNome} onChange={e => setNovoNome(e.target.value.toUpperCase())} required />
             </div>
             <div className="campo">
               <label className="label">CPF <span className="obrigatorio">*</span></label>
-              <input className="input" type="text" value={novoCpf} onChange={e => setNovoCpf(e.target.value)} required />
+              <input className="input" type="text" placeholder="000.000.000-00" value={novoCpf} onChange={e => setNovoCpf(formatarCPF(e.target.value))} required />
             </div>
             <div className="campo">
               <label className="label">Telefone</label>
-              <input className="input" type="text" value={novoTelefone} onChange={e => setNovoTelefone(e.target.value)} />
+              <input className="input" type="text" placeholder="(00) 00000-0000" value={novoTelefone} onChange={e => setNovoTelefone(formatarTelefone(e.target.value))} />
             </div>
             <div className="campo">
               <label className="label">E-mail</label>
-              <input className="input" type="text" value={novoEmail} onChange={e => setNovoEmail(e.target.value)} />
+              <input className="input" type="text" value={novoEmail} onChange={e => setNovoEmail(e.target.value.toUpperCase())} />
             </div>
             <div className="campo">
               <label className="label">Endereço</label>
-              <input className="input" type="text" value={novoEndereco} onChange={e => setNovoEndereco(e.target.value)} />
+              <input className="input" type="text" value={novoEndereco} onChange={e => setNovoEndereco(e.target.value.toUpperCase())} />
             </div>
             {erroCliente && <p className="criar-os__erro">{erroCliente}</p>}
             <div className="criar-os__rodape">
@@ -387,7 +389,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
                 type="text"
                 placeholder="Ex.: Celular, Notebook, TV..."
                 value={equipamento}
-                onChange={e => setEquipamento(e.target.value)}
+                onChange={e => setEquipamento(e.target.value.toUpperCase())}
                 required
               />
               {sugestoesEquipamento.length > 0 && (
@@ -407,7 +409,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
                 type="text"
                 placeholder="Ex.: Samsung, Dell..."
                 value={marca}
-                onChange={e => setMarca(e.target.value)}
+                onChange={e => setMarca(e.target.value.toUpperCase())}
                 required
               />
               {sugestoesMarca.length > 0 && (
@@ -427,7 +429,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
                 type="text"
                 placeholder="Ex.: Galaxy S23..."
                 value={modelo}
-                onChange={e => setModelo(e.target.value)}
+                onChange={e => setModelo(e.target.value.toUpperCase())}
                 required
               />
               {sugestoesModelo.length > 0 && (
@@ -449,7 +451,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
               type="text"
               placeholder="Ex.: SN123456789"
               value={numeroSerie}
-              onChange={e => setNumeroSerie(e.target.value)}
+              onChange={e => setNumeroSerie(e.target.value.toUpperCase())}
               required
             />
           </div>
@@ -463,7 +465,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
                     type="text"
                     placeholder="Ex.: PAT-000123"
                     value={codigo}
-                    onChange={e => atualizarPatrimonio(index, e.target.value)}
+                    onChange={e => atualizarPatrimonio(index, e.target.value.toUpperCase())}
                   />
                   {index === codigosPatrimonio.length - 1 && (
                     <button

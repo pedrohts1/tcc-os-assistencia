@@ -359,7 +359,7 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
                 <div className="campo criar-os__campo--largo">
                   <label className="label">Equipamento <span className="obrigatorio">*</span></label>
                   <div className="criar-os__campo-sugestao">
-                    <input className="input" type="text" value={equipamentoEd} onChange={e => { setEquipamentoEd(e.target.value); setDigitandoEquipamento(true) }} required />
+                    <input className="input" type="text" value={equipamentoEd} onChange={e => { setEquipamentoEd(e.target.value.toUpperCase()); setDigitandoEquipamento(true) }} required />
                     {digitandoEquipamento && sugestoesEquipamento.length > 0 && (
                       <ul className="criar-os__busca-resultados">
                         {sugestoesEquipamento.map(s => (
@@ -372,7 +372,7 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
                 <div className="campo">
                   <label className="label">Marca <span className="obrigatorio">*</span></label>
                   <div className="criar-os__campo-sugestao">
-                    <input className="input" type="text" value={marcaEd} onChange={e => { setMarcaEd(e.target.value); setDigitandoMarca(true) }} required />
+                    <input className="input" type="text" value={marcaEd} onChange={e => { setMarcaEd(e.target.value.toUpperCase()); setDigitandoMarca(true) }} required />
                     {digitandoMarca && sugestoesMarca.length > 0 && (
                       <ul className="criar-os__busca-resultados">
                         {sugestoesMarca.map(s => (
@@ -385,7 +385,7 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
                 <div className="campo">
                   <label className="label">Modelo <span className="obrigatorio">*</span></label>
                   <div className="criar-os__campo-sugestao">
-                    <input className="input" type="text" value={modeloEd} onChange={e => { setModeloEd(e.target.value); setDigitandoModelo(true) }} required />
+                    <input className="input" type="text" value={modeloEd} onChange={e => { setModeloEd(e.target.value.toUpperCase()); setDigitandoModelo(true) }} required />
                     {digitandoModelo && sugestoesModelo.length > 0 && (
                       <ul className="criar-os__busca-resultados">
                         {sugestoesModelo.map(s => (
@@ -400,14 +400,14 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
               <div className="criar-os__linha">
                 <div className="campo">
                   <label className="label">Nº de Série <span className="obrigatorio">*</span></label>
-                  <input className="input" type="text" value={numeroSerieEd} onChange={e => setNumeroSerieEd(e.target.value)} required />
+                  <input className="input" type="text" value={numeroSerieEd} onChange={e => setNumeroSerieEd(e.target.value.toUpperCase())} required />
                 </div>
                 <div className="campo">
                   <label className="label">Código / Patrimônio</label>
                   <div className="criar-os__patrimonio-lista">
                     {codigosPatrimonioEd.map((codigo, index) => (
                       <div key={index} className="criar-os__patrimonio-item">
-                        <input className="input" type="text" placeholder="Ex.: PAT-000123" value={codigo} onChange={e => atualizarPatrimonio(index, e.target.value)} />
+                        <input className="input" type="text" placeholder="Ex.: PAT-000123" value={codigo} onChange={e => atualizarPatrimonio(index, e.target.value.toUpperCase())} />
                         {index === codigosPatrimonioEd.length - 1 && (
                           <button className="criar-os__btn-adicionar-patrimonio" type="button" onClick={() => setCodigosPatrimonioEd(prev => [...prev, ''])}>+</button>
                         )}

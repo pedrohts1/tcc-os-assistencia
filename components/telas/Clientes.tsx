@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { ClienteInfo } from '@/lib/types'
+import { formatarCPF, formatarTelefone, validarCPF } from '@/lib/mascaras'
 
 interface Props {
   onVerOS: (id: number, nome: string) => void
@@ -39,8 +40,8 @@ export default function Clientes({ onVerOS }: Props) {
   function abrirEdicao(cliente: ClienteInfo) {
     setClienteEditando(cliente)
     setNomeEd(cliente.nome)
-    setCpfEd(cliente.cpf ?? '')
-    setTelefoneEd(cliente.telefone ?? '')
+    setCpfEd(formatarCPF(cliente.cpf ?? ''))
+    setTelefoneEd(formatarTelefone(cliente.telefone ?? ''))
     setEmailEd(cliente.email ?? '')
     setEnderecoEd(cliente.endereco ?? '')
     setErroModal('')
@@ -54,6 +55,7 @@ export default function Clientes({ onVerOS }: Props) {
   async function handleSalvarCliente(e: { preventDefault(): void }) {
     e.preventDefault()
     if (!clienteEditando) return
+    if (!validarCPF(cpfEd)) { setErroModal('CPF inválido.'); return }
     setErroModal('')
 
     const res = await fetch(`/api/clientes/${clienteEditando.id}`, {
@@ -133,23 +135,23 @@ export default function Clientes({ onVerOS }: Props) {
             <form onSubmit={handleSalvarCliente}>
               <div className="campo">
                 <label className="label">Nome <span className="obrigatorio">*</span></label>
-                <input className="input" type="text" value={nomeEd} onChange={e => setNomeEd(e.target.value)} required />
+                <input className="input" type="text" value={nomeEd} onChange={e => setNomeEd(e.target.value.toUpperCase())} required />
               </div>
               <div className="campo">
                 <label className="label">CPF <span className="obrigatorio">*</span></label>
-                <input className="input" type="text" value={cpfEd} onChange={e => setCpfEd(e.target.value)} required />
+                <input className="input" type="text" placeholder="000.000.000-00" value={cpfEd} onChange={e => setCpfEd(formatarCPF(e.target.value))} required />
               </div>
               <div className="campo">
                 <label className="label">Telefone</label>
-                <input className="input" type="text" value={telefoneEd} onChange={e => setTelefoneEd(e.target.value)} />
+                <input className="input" type="text" placeholder="(00) 00000-0000" value={telefoneEd} onChange={e => setTelefoneEd(formatarTelefone(e.target.value))} />
               </div>
               <div className="campo">
                 <label className="label">E-mail</label>
-                <input className="input" type="text" value={emailEd} onChange={e => setEmailEd(e.target.value)} />
+                <input className="input" type="text" value={emailEd} onChange={e => setEmailEd(e.target.value.toUpperCase())} />
               </div>
               <div className="campo">
                 <label className="label">Endereço</label>
-                <input className="input" type="text" value={enderecoEd} onChange={e => setEnderecoEd(e.target.value)} />
+                <input className="input" type="text" value={enderecoEd} onChange={e => setEnderecoEd(e.target.value.toUpperCase())} />
               </div>
 
               {erroModal && <p className="criar-os__erro">{erroModal}</p>}
