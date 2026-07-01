@@ -80,6 +80,7 @@ body {
   cursor: pointer;
   margin-bottom: 8px;
   transition: 0.2s;
+  font-weight: 600
 }
 
 .sidebar button:hover {
@@ -145,7 +146,7 @@ body {
   cursor: pointer;
   transition: 0.2s;
   margin-top: 12px;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
 }
 
 .conteudo > div button:first-of-type,
@@ -154,11 +155,23 @@ body {
   border: 1px solid #cbd5e1;
   color: #475569;
   margin-right: 8px;
-  float: left;
+}
+
+.conteudo > div button,
+.conteudo > div input[value="Trocar Cliente"] {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  margin-right: 8px;
 }
 
 .conteudo > div button:first-of-type:hover,
 .conteudo > div input[value="Cancelar"]:hover {
+  background: #f8fafc;
+}
+
+.conteudo > div button:hover,
+.conteudo > div input[value="Trocar Cliente"]:hover {
   background: #f8fafc;
 }
 
@@ -391,27 +404,27 @@ body {
   font-weight: 600;
 }
 
-.criar-os__tabela td[data-status="Aguardando avaliação"] {
+.criar-os__tabela, .listar-os__tabela td[data-status="Aguardando avaliação"] {
   color: #2563eb;
 }
 
-.criar-os__tabela td[data-status="Aguardando, autorização orçamento"] {
+.criar-os__tabela, .listar-os__tabela td[data-status="Aguardando, autorização orçamento"] {
   color: #ea580c;
 }
 
-.criar-os__tabela td[data-status="Autorizado, aguardando peça"] {
+.criar-os__tabela, .listar-os__tabela td[data-status="Autorizado, aguardando peça"] {
   color: #7c3aed;
 }
 
-.criar-os__tabela td[data-status="Autorizado, reparo em andamento"] {
+.criar-os__tabela, .listar-os__tabela td[data-status="Autorizado, reparo em andamento"] {
   color: #b45309;
 }
 
-.criar-os__tabela td[data-status="Pronto, cliente avisado"] {
+.criar-os__tabela, .listar-os__tabela td[data-status="Pronto, cliente avisado"] {
   color: #16a34a;
 }
 
-.criar-os__tabela td[data-status="Garantia, aguardando peça"] {
+.criar-os__tabela, .listar-os__tabela td[data-status="Garantia, aguardando peça"] {
   color: #6d28d9
 }
 
@@ -453,17 +466,27 @@ body {
 .listar-os__tabela,
 .clientes__tabela {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
   text-align: left;
   font-size: 14px;
 }
 
+.listar-os__tabela, .clientes__tabela {
+  border: 1px solid #f1f5f9;
+  border-color: #e2e8f0;
+  border-radius: 6px;
+}
+
 .listar-os__tabela thead th,
 .clientes__tabela thead th {
-  color: #475569;
+  color: #1f2937;
   font-weight: 600;
   padding: 12px 16px;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 .listar-os__tabela tbody tr,
@@ -474,7 +497,7 @@ body {
 
 .listar-os__tabela tbody tr:hover,
 .clientes__tabela tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: #f5f5f5;
 }
 
 .listar-os__tabela tbody td,
@@ -491,8 +514,29 @@ body {
   color: #0f172a;
 }
 
+.listar-os__tabela td button {
+  display: flex;
+  flex-direction: row;
+  align-items: first baseline;
+  background-color: #16a34a;
+  color: firebrick ;
+}
+
+.rewa {
+  display: flex !important;
+  gap: 8px;                
+  justify-content: center; 
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.rewa button {
+  display: flex;
+  flex-direction: row;
+}
+
 .sidebar button.ativo {
-  background: #2563eb;
+  background: #1b2c50;
   color: #ffffff;
   font-weight: 600;
 }
@@ -527,4 +571,27 @@ body {
 
 .btn-secundario:hover {
   background: #f8fafc;
+}
+
+.btn-terceiro {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.listar-os__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.listar-os__cabecalho button {
+  margin: 15px;
 }

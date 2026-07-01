@@ -29,11 +29,11 @@ interface OSLista {
 }
 
 const STATUS_OPCOES = [
-  'Aguardando Avaliação',
-  'Aguardando Autorização Orçamento',
-  'Autorizado, Aguardando Peça',
-  'Autorizado, Reparo em Andamento',
-  'Pronto, Avisar Cliente',
+  'Aguardando avaliação',
+  'Aguardando, autorização orçamento',
+  'Autorizado, aguardando peça',
+  'Autorizado, reparo em andamento',
+  'Pronto, cliente avisado',
   'Finalizado',
 ]
 
@@ -111,7 +111,7 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
 
   function abrirEdicao(os: OSLista) {
     setOsEditando(os)
-    setStatusEd(os.stat || 'Aguardando Avaliação')
+    setStatusEd(os.stat || 'Aguardando avaliação')
     setTipoAtendimentoEd(os.tipo_atendimento || '')
     setTipoOSEd(os.tipo_os || '')
     setEquipamentoEd(os.equip_tipo || '')
@@ -201,28 +201,32 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
       <html lang="pt-BR">
       <head>
         <meta charset="UTF-8">
-        <title>OS #${os.id} — Center Son</title>
+        <title>OS #${os.id} — TecAssist</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 40px; color: #222; }
           h1 { font-size: 22px; margin-bottom: 4px; }
           h2 { font-size: 15px; margin-top: 24px; margin-bottom: 6px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+          h3 { font-size: 25px; margin-bottom: 4px; text-align: center; }
           p { margin: 4px 0; font-size: 14px; }
-          .assinatura { margin-top: 56px; }
+          .assinatura { margin-top: 56px; text-align: right; }
         </style>
       </head>
       <body>
-        <h1>Center Son — Ordem de Serviço #${os.id}</h1>
+        <h3>TecAssist</h3>
+        <h1>Ordem de Serviço: ${os.id}</h1>
         <p>Data de entrada: ${dataFormatada}</p>
-        <p>Status: ${os.stat}</p>
-        <p>Tipo: ${os.tipo_os} — ${os.tipo_atendimento}</p>
+        <p>Tipo de Atendimento: ${os.tipo_atendimento}</p>
+        <p>Tipo de Serviço: ${os.tipo_os}</p>
 
         <h2>Cliente</h2>
-        <p>Nome: ${os.cliente_nome}</p>
-        <p>Telefone: ${os.cliente_telefone || '—'}</p>
+        <p><strong>Nome:</strong> ${os.cliente_nome}</p>
+        <p><strong>Telefone:</strong> ${os.cliente_telefone || '—'}</p>
 
         <h2>Equipamento</h2>
-        <p>Aparelho: ${os.equip_tipo} ${os.marca} ${os.modelo}</p>
-        <p>Nº de Série: ${os.numero_serie}</p>
+        <p><strong>Aparelho:</strong> ${os.equip_tipo}</p>
+        <p><strong>Marca:</strong> ${os.marca}</p>
+        <p><strong>Modelo:</strong> ${os.modelo}</p>
+        <p><strong>Nº de Série:</strong> ${os.numero_serie}</p>
 
         <h2>Dados da OS</h2>
         <p><strong>Defeito relatado:</strong> ${os.defeito_relatado || '—'}</p>
@@ -284,30 +288,34 @@ export default function ListarOS({ clienteFiltro, onLimparFiltro }: Props) {
           <thead>
             <tr>
               <th>Nº OS</th>
-              <th>Status</th>
-              <th>Tipo</th>
-              <th>Equipamento</th>
               <th>Cliente</th>
-              <th>Data</th>
-              <th></th>
+              <th>Situação</th>
+              <th>Tipo de OS</th>
+              <th>Valor</th>
+              <th>Entrada</th>
+              <th>Equipamento</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Nº Série</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             {ordens.map(os => (
               <tr key={os.id} onClick={() => abrirEdicao(os)}>
-                <td>#{os.id}</td>
-                <td>{os.stat}</td>
-                <td>{os.tipo_os}</td>
-                <td>{os.equip_tipo} {os.marca} {os.modelo}</td>
+                <td>{os.id}</td>
                 <td>{os.cliente_nome}</td>
+                <td data-status={os.stat}>{os.stat} </td>
+                <td>{os.tipo_os}</td>
+                <td>R${os.valor_total || '0'},00</td>
                 <td>{new Date(os.data_entrada).toLocaleDateString('pt-BR')}</td>
-                <td>
-                  <button className="btn-secundario" type="button" onClick={e => { e.stopPropagation(); abrirEdicao(os) }}>
-                    Editar
-                  </button>
-                  <button className="btn-secundario" type="button" onClick={e => { e.stopPropagation(); handleImprimir(os) }}>
-                    Imprimir OS
-                  </button>
+                <td>{os.equip_tipo}</td>
+                <td>{os.marca}</td>
+                <td>{os.modelo}</td>
+                <td>{os.numero_serie}</td>
+                <td className='rewa'>
+                  <button className="btn-primario" type="button" onClick={e => { e.stopPropagation(); abrirEdicao(os) }}>Editar</button>
+                  <button className="btn-secundario" type="button" onClick={e => { e.stopPropagation(); handleImprimir(os) }}>Imprimir</button>
                 </td>
               </tr>
             ))}
