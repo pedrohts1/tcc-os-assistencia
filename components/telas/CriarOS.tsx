@@ -25,11 +25,11 @@ interface OSLista {
 }
 
 const STATUS_OPCOES = [
-  'Aguardando Avaliação',
-  'Aguardando Autorização Orçamento',
-  'Autorizado, Aguardando Peça',
-  'Autorizado, Reparo em Andamento',
-  'Pronto, Avisar Cliente',
+  'Aguardando avaliação',
+  'Aguardando, autorização orçamento',
+  'Autorizado, aguardando peça',
+  'Autorizado, reparo em andamento',
+  'Pronto, cliente avisado',
   'Finalizado',
 ]
 
@@ -50,7 +50,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
 
   const [ordensExistentes, setOrdensExistentes] = useState<OSLista[]>([])
 
-  const [statusOS, setStatusOS] = useState('Aguardando Avaliação')
+  const [statusOS, setStatusOS] = useState('Aguardando avaliação')
   const [tipoAtendimento, setTipoAtendimento] = useState('')
   const [tipoOS, setTipoOS] = useState('')
   const [equipamento, setEquipamento] = useState('')
@@ -246,7 +246,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
               )}
               {clienteSelecionado && (
                 <>
-                  <button className="btn-secundario" type="button" onClick={limparCliente}>Trocar Cliente</button>
+                  <button className="btn-terceiro" type="button" onClick={limparCliente}>Trocar Cliente</button>
                   <button className="btn-primario" type="button" onClick={handleContinuar}>Continuar →</button>
                 </>
               )}
@@ -482,7 +482,7 @@ export default function CriarOS({ onCancelar, onSalvar }: Props) {
           <label className="label">Acessórios / Itens Inclusos</label>
           <textarea
             className="textarea"
-            placeholder="Ex.: Carregador, Cabo USB, Controle..."
+            placeholder="Ex.: Carregador, Cabo USB, Con le..."
             value={acessorios}
             onChange={e => setAcessorios(e.target.value)}
           />
